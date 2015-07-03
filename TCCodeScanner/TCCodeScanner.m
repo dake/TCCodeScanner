@@ -99,7 +99,7 @@
     _session = [[AVCaptureSession alloc] init];
     
     [_session beginConfiguration];
-//    _session.sessionPreset = AVCaptureSessionPreset640x480;
+//    _session.sessionPreset = AVCaptureSessionPresetHigh;
     
     NSError *inputError = nil;
     AVCaptureDeviceInput *cameraInput = [[AVCaptureDeviceInput alloc] initWithDevice:self.captureDevice error:&inputError];
@@ -107,6 +107,7 @@
         if ([_session canAddInput:cameraInput]) {
             [_session addInput:cameraInput];
         }
+#if !TARGET_IPHONE_SIMULATOR
         else {
             NSAssert(false, @"[%@] could not add capture device!", NSStringFromClass(self.class));
         }
@@ -114,7 +115,10 @@
     else {
         NSAssert(false, @"[%@] could not create capture device: %@", NSStringFromClass(self.class), inputError);
     }
-    
+#else
+    }
+#endif
+
     AVCaptureMetadataOutput *metadata = [[AVCaptureMetadataOutput alloc] init];
     if ([_session canAddOutput:metadata]) {
         dispatch_queue_t metadataQueue = dispatch_queue_create("dake.TCKit.TCCodeScanner.metadata", DISPATCH_QUEUE_SERIAL);
@@ -124,9 +128,11 @@
         }
         _metadataOutput = metadata;
     }
+#if !TARGET_IPHONE_SIMULATOR
     else {
         NSAssert(false, @"[%@] could not create metadata output!", NSStringFromClass(self.class));
     }
+#endif
     [_session commitConfiguration];
 }
 
