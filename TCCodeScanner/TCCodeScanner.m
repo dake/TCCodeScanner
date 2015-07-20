@@ -51,9 +51,11 @@
             
         case AVAuthorizationStatusNotDetermined: {
             [AVCaptureDevice requestAccessForMediaType:AVMediaTypeVideo completionHandler:^(BOOL granted) {
-                if (nil != compelet) {
-                    compelet(granted);
-                }
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    if (nil != compelet) {
+                        compelet(granted);
+                    }
+                });
             }];
             break;
         }
