@@ -1,9 +1,9 @@
 //
 //  TCCodeScanner.m
-//  SudiyiClient
+//  Dake
 //
-//  Created by cdk on 15/5/4.
-//  Copyright (c) 2015年 Sudiyi. All rights reserved.
+//  Created by Dake on 15/5/4.
+//  Copyright (c) 2015年 Dake. All rights reserved.
 //
 
 #import "TCCodeScanner.h"
@@ -140,52 +140,23 @@
 
 - (void)teardownCaptureSession
 {
-    [_session stopRunning];
+    if (_session.isRunning) {
+        [_session stopRunning];
+    }
     _session = nil;
     _metadataOutput = nil;
-}
-
-
-#pragma mark - capturing
-
-- (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputMetadataObjects:(NSArray *)metadataObjects fromConnection:(AVCaptureConnection *)connection
-{
-    NSSet *objectsStillLiving = [NSSet setWithArray:[metadataObjects valueForKeyPath:@"@distinctUnionOfObjects.stringValue"]];
-    
-    NSMutableSet *objectsAdded = [NSMutableSet setWithSet:objectsStillLiving];
-    [objectsAdded minusSet:_codesInFOV];
-    
-    //	NSMutableSet *objectsUpdated = [NSMutableSet setWithSet:objectsStillLiving];
-    //	[objectsUpdated intersectSet:self.codesInFOV];
-    
-    NSMutableSet *objectsMissing = [NSMutableSet setWithSet:_codesInFOV];
-    [objectsMissing minusSet:objectsStillLiving];
-    
-    _codesInFOV = objectsStillLiving;
-    
-    dispatch_sync(dispatch_get_main_queue(), ^{
-        if (objectsAdded.count > 0 && [self.delegate respondsToSelector:@selector(scanner:codesDidEnterFOV:)]) {
-            [self.delegate scanner:self codesDidEnterFOV:[objectsAdded copy]];
-        }
-        //		if (objectsUpdated.count > 0 && [self.delegate respondsToSelector:@selector(scanner:codesDidUpdate:)]) {
-        //			[self.delegate scanner:self codesDidUpdate:[objectsUpdated copy]];
-        //		}
-        if (objectsMissing.count > 0 && [self.delegate respondsToSelector:@selector(scanner:codesDidLeaveFOV:)]) {
-            [self.delegate scanner:self codesDidLeaveFOV:[objectsMissing copy]];
-        }
-    });
 }
 
 
 - (BOOL)focusAtPoint:(CGPoint)point
 {
     AVCaptureDevice *videoDevice = self.captureDevice;
-    if ([videoDevice isFocusPointOfInterestSupported]
+    if (videoDevice.isFocusPointOfInterestSupported
         && [videoDevice isFocusModeSupported:AVCaptureFocusModeContinuousAutoFocus]) {
         NSError *configurationError = nil;
         if ([videoDevice lockForConfiguration:&configurationError]) {
-            [videoDevice setFocusMode:AVCaptureFocusModeContinuousAutoFocus];
-            [videoDevice setFocusPointOfInterest:point];
+            videoDevice.focusMode = AVCaptureFocusModeContinuousAutoFocus;
+            videoDevice.focusPointOfInterest = point;
             [videoDevice unlockForConfiguration];
             return YES;
         }
@@ -202,12 +173,12 @@
 - (BOOL)exposeAtPoint:(CGPoint)point
 {
     AVCaptureDevice *videoDevice = self.captureDevice;
-    if ([videoDevice isExposurePointOfInterestSupported]
+    if (videoDevice.isExposurePointOfInterestSupported
         && [videoDevice isExposureModeSupported:AVCaptureExposureModeContinuousAutoExposure]) {
         NSError *configurationError = nil;
         if ([videoDevice lockForConfiguration:&configurationError]) {
-            [videoDevice setExposureMode:AVCaptureExposureModeContinuousAutoExposure];
-            [videoDevice setExposurePointOfInterest:point];
+            videoDevice.exposureMode = AVCaptureExposureModeContinuousAutoExposure;
+            videoDevice.exposurePointOfInterest = point;
             [videoDevice unlockForConfiguration];
             return YES;
         }
@@ -221,5 +192,32 @@
     }
 }
 
+
+#pragma mark - AVCaptureMetadataOutputObjectsDelegate
+
+- (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputMetadataObjects:(NSArray *)metadataObjects fromConnection:(AVCaptureConnection *)connection
+{
+    // AVMetadataMachineReadableCodeObject
+    NSSet *objectsStillLiving = [NSSet setWithArray:[metadataObjects valueForKeyPath:@"@distinctUnionOfObjects.stringValue"]];
+    NSMutableSet *objectsAdded = [NSMutableSet setWithSet:objectsStillLiving];
+    [objectsAdded minusSet:_codesInFOV];
+    
+    NSMutableSet *objectsMissing = [NSMutableSet setWithSet:_codesInFOV];
+    [objectsMissing minusSet:objectsStillLiving];
+    
+    _codesInFOV = objectsStillLiving;
+    
+    
+    if (objectsAdded.count > 0 && [self.delegate respondsToSelector:@selector(scanner:codesDidEnterFOV:)]) {
+        dispatch_sync(dispatch_get_main_queue(), ^{
+            [self.delegate scanner:self codesDidEnterFOV:objectsAdded.copy];
+        });
+    }
+    if (objectsMissing.count > 0 && [self.delegate respondsToSelector:@selector(scanner:codesDidLeaveFOV:)]) {
+        dispatch_sync(dispatch_get_main_queue(), ^{
+            [self.delegate scanner:self codesDidLeaveFOV:objectsMissing.copy];
+        });
+    }
+}
 
 @end

@@ -1,9 +1,9 @@
 //
 //  TCCodeScannerView.m
-//  SudiyiClient
+//  Dake
 //
-//  Created by cdk on 15/5/4.
-//  Copyright (c) 2015年 Sudiyi. All rights reserved.
+//  Created by Dake on 15/5/4.
+//  Copyright (c) 2015年 Dake. All rights reserved.
 //
 
 #import "TCCodeScannerView.h"
@@ -11,7 +11,7 @@
 
 @interface TCCodeScannerView ()
 
-@property(nonatomic,strong,readonly) AVCaptureVideoPreviewLayer *previewLayer;
+@property (nonatomic, strong, readonly) AVCaptureVideoPreviewLayer *previewLayer;
 
 @end
 
@@ -29,7 +29,7 @@
 
 + (Class)layerClass
 {
-    return [AVCaptureVideoPreviewLayer class];
+    return AVCaptureVideoPreviewLayer.class;
 }
 
 - (void)willMoveToWindow:(UIWindow *)newWindow
@@ -39,11 +39,6 @@
     if (nil != newWindow) {
         [self updateMetadata];
     }
-}
-
-- (void)didMoveToWindow
-{
-    [super didMoveToWindow];
 }
 
 - (instancetype)initWithFrame:(CGRect)frame
@@ -76,7 +71,12 @@
     // worked after layer did layout
     CGRect rectOfInterest = [self.previewLayer metadataOutputRectOfInterestForRect:self.scannerArea];
     NSAssert(!isnan(rectOfInterest.origin.x), nil);
-    self.scanner.metadataOutput.rectOfInterest = rectOfInterest;
+    if (!CGRectIsEmpty(rectOfInterest)) {
+        self.scanner.metadataOutput.rectOfInterest = rectOfInterest;
+    }
+    else {
+        self.scanner.metadataOutput.rectOfInterest = CGRectMake(0, 0, 1, 1);
+    }
 }
 
 - (AVCaptureVideoPreviewLayer *)previewLayer
@@ -86,30 +86,37 @@
 
 - (AVCaptureVideoOrientation)videoOrientation
 {
-    if ([self.previewLayer.connection isVideoOrientationSupported]) {
+    if (self.previewLayer.connection.isVideoOrientationSupported) {
         return self.previewLayer.connection.videoOrientation;
     }
     else {
-        return 0;
+        return AVCaptureVideoOrientationPortrait;
     }
 }
 
 - (void)setVideoOrientation:(AVCaptureVideoOrientation)videoOrientation
 {
-    if ([self.previewLayer.connection isVideoOrientationSupported]) {
+    if (self.previewLayer.connection.isVideoOrientationSupported) {
         self.previewLayer.connection.videoOrientation = videoOrientation;
     }
 }
 
-
 - (void)start
 {
-    [_scanner.session startRunning];
+    @synchronized(_scanner.session) {
+        if (!_scanner.session.isRunning) {
+            [_scanner.session startRunning];
+        }
+    }
 }
 
 - (void)stop
 {
-    [_scanner.session stopRunning];
+    @synchronized(_scanner.session) {
+        if (_scanner.session.isRunning) {
+            [_scanner.session stopRunning];
+        }
+    }
 }
 
 - (void)configureLayer
@@ -120,7 +127,7 @@
 }
 
 
-#pragma mark -
+#pragma mark - UITapGestureRecognizer
 
 - (void)focusAndExpose:(UITapGestureRecognizer *)sender
 {

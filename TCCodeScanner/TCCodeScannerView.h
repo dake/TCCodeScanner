@@ -1,9 +1,9 @@
 //
 //  TCCodeScannerView.h
-//  SudiyiClient
+//  Dake
 //
-//  Created by cdk on 15/5/4.
-//  Copyright (c) 2015年 Sudiyi. All rights reserved.
+//  Created by Dake on 15/5/4.
+//  Copyright (c) 2015年 Dake. All rights reserved.
 //
 
 #import <UIKit/UIKit.h>
@@ -11,11 +11,11 @@
 
 @interface TCCodeScannerView : UIView
 
-@property(nonatomic,strong,readonly) TCCodeScanner *scanner;
-@property(nonatomic,assign) AVCaptureVideoOrientation videoOrientation;
+@property (nonatomic, strong, readonly) TCCodeScanner *scanner;
+@property (nonatomic, assign) AVCaptureVideoOrientation videoOrientation;
 
 // must be set after viewDidLayout
-@property(nonatomic,assign) CGRect scannerArea;
+@property (nonatomic, assign) CGRect scannerArea;
 
 - (void)start;
 - (void)stop;

@@ -1,9 +1,9 @@
 //
 //  TCCodeScanner.h
-//  SudiyiClient
+//  Dake
 //
-//  Created by cdk on 15/5/4.
-//  Copyright (c) 2015年 Sudiyi. All rights reserved.
+//  Created by Dake on 15/5/4.
+//  Copyright (c) 2015年 Dake. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
@@ -13,14 +13,14 @@
 
 NS_CLASS_AVAILABLE_IOS(7_0) @interface TCCodeScanner : NSObject
 
-@property(nonatomic,weak) id<TCCodeScannerDelegate> delegate;
+@property (nonatomic, weak) id<TCCodeScannerDelegate> delegate;
 
-@property(nonatomic,strong,readonly) AVCaptureMetadataOutput *metadataOutput;
+@property (nonatomic, strong, readonly) AVCaptureMetadataOutput *metadataOutput;
 
-@property(nonatomic,assign) AVCaptureTorchMode torchMode;
-@property(nonatomic,assign,readonly) BOOL isTorchModeAvailable;
+@property (nonatomic, assign) AVCaptureTorchMode torchMode;
+@property (nonatomic, assign, readonly) BOOL isTorchModeAvailable;
 
-@property(nonatomic,strong,readonly) AVCaptureSession *session;
+@property (nonatomic, strong, readonly) AVCaptureSession *session;
 
 + (void)requestAccessAuthorized:(void (^)(BOOL granted))compelet;
 
@@ -44,8 +44,6 @@ NS_CLASS_AVAILABLE_IOS(7_0) @interface TCCodeScanner : NSObject
  code from this method and close the scanner afterwards.
  */
 - (void)scanner:(TCCodeScanner *)scanner codesDidEnterFOV:(NSSet *)codes;
-
-//- (void)scanner:(BCScannerViewController *)scanner codesDidUpdate:(NSSet *)codes;
 
 /**
  This method is called whenever an existing code leaves the field of view.
