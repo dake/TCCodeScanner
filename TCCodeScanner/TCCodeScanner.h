@@ -1,9 +1,9 @@
 //
 //  TCCodeScanner.h
-//  Dake
+//  TCKit
 //
-//  Created by Dake on 15/5/4.
-//  Copyright (c) 2015年 Dake. All rights reserved.
+//  Created by dake on 15/5/4.
+//  Copyright (c) 2015年 dake. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
@@ -22,7 +22,7 @@ NS_CLASS_AVAILABLE_IOS(7_0) @interface TCCodeScanner : NSObject
 
 @property (nonatomic, strong, readonly) AVCaptureSession *session;
 
-+ (void)requestAccessAuthorized:(void (^)(BOOL granted))compelet;
++ (void)requestAccessAuthorized:(void (^)(BOOL granted))complete;
 
 - (BOOL)focusAtPoint:(CGPoint)point;
 - (BOOL)exposeAtPoint:(CGPoint)point;

@@ -1,9 +1,9 @@
 //
 //  TCCodeScannerView.m
-//  Dake
+//  TCKit
 //
-//  Created by Dake on 15/5/4.
-//  Copyright (c) 2015年 Dake. All rights reserved.
+//  Created by dake on 15/5/4.
+//  Copyright (c) 2015年 dake. All rights reserved.
 //
 
 #import "TCCodeScannerView.h"
@@ -18,7 +18,7 @@
 
 @implementation TCCodeScannerView
 {
-    @private
+@private
     TCCodeScanner *_scanner;
 }
 
@@ -73,8 +73,7 @@
     NSAssert(!isnan(rectOfInterest.origin.x), nil);
     if (!CGRectIsEmpty(rectOfInterest)) {
         self.scanner.metadataOutput.rectOfInterest = rectOfInterest;
-    }
-    else {
+    } else {
         self.scanner.metadataOutput.rectOfInterest = CGRectMake(0, 0, 1, 1);
     }
 }
@@ -88,8 +87,7 @@
 {
     if (self.previewLayer.connection.isVideoOrientationSupported) {
         return self.previewLayer.connection.videoOrientation;
-    }
-    else {
+    } else {
         return AVCaptureVideoOrientationPortrait;
     }
 }

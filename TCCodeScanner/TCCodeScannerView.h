@@ -1,9 +1,9 @@
 //
 //  TCCodeScannerView.h
-//  Dake
+//  TCKit
 //
-//  Created by Dake on 15/5/4.
-//  Copyright (c) 2015年 Dake. All rights reserved.
+//  Created by dake on 15/5/4.
+//  Copyright (c) 2015年 dake. All rights reserved.
 //
 
 #import <UIKit/UIKit.h>

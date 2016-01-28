@@ -1,12 +1,23 @@
 //
 //  TCCodeScanner.m
-//  Dake
+//  TCKit
 //
-//  Created by Dake on 15/5/4.
-//  Copyright (c) 2015年 Dake. All rights reserved.
+//  Created by dake on 15/5/4.
+//  Copyright (c) 2015年 dake. All rights reserved.
 //
 
 #import "TCCodeScanner.h"
+
+
+#if TARGET_IPHONE_SIMULATOR
+
+#ifdef NSAssert
+#undef NSAssert
+#endif
+
+#define NSAssert(...) ;
+
+#endif
 
 @import AVFoundation;
 
@@ -37,14 +48,14 @@
     return self;
 }
 
-+ (void)requestAccessAuthorized:(void (^)(BOOL granted))compelet
++ (void)requestAccessAuthorized:(void (^)(BOOL granted))complete
 {
     AVAuthorizationStatus authStatus = [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeVideo];
     
     switch (authStatus) {
         case AVAuthorizationStatusAuthorized: {
-            if (nil != compelet) {
-                compelet(YES);
+            if (nil != complete) {
+                complete(YES);
             }
             break;
         }
@@ -52,19 +63,19 @@
         case AVAuthorizationStatusNotDetermined: {
             [AVCaptureDevice requestAccessForMediaType:AVMediaTypeVideo completionHandler:^(BOOL granted) {
                 dispatch_async(dispatch_get_main_queue(), ^{
-                    if (nil != compelet) {
-                        compelet(granted);
+                    if (nil != complete) {
+                        complete(granted);
                     }
                 });
             }];
             break;
         }
-            
-        case AVAuthorizationStatusRestricted:
+           
         case AVAuthorizationStatusDenied:
+        case AVAuthorizationStatusRestricted:
         default:
-            if (nil != compelet) {
-                compelet(NO);
+            if (nil != complete) {
+                complete(NO);
             }
             break;
     }
@@ -77,15 +88,15 @@
 
 - (void)setTorchMode:(AVCaptureTorchMode)torchMode
 {
-    _torchMode = torchMode;
-    
-    [self.captureDevice lockForConfiguration:NULL];
-    
-    if (self.captureDevice.isTorchAvailable) {
-        self.captureDevice.torchMode = torchMode;
+    if ([self.captureDevice lockForConfiguration:NULL]) {
+        
+        if (self.captureDevice.isTorchAvailable) {
+            self.captureDevice.torchMode = torchMode;
+            _torchMode = torchMode;
+        }
+        
+        [self.captureDevice unlockForConfiguration];
     }
-    
-    [self.captureDevice unlockForConfiguration];
 }
 
 - (BOOL)isTorchModeAvailable
@@ -108,18 +119,12 @@
     if (cameraInput) {
         if ([_session canAddInput:cameraInput]) {
             [_session addInput:cameraInput];
-        }
-#if !TARGET_IPHONE_SIMULATOR
-        else {
+        } else {
             NSAssert(false, @"[%@] could not add capture device!", NSStringFromClass(self.class));
         }
-    }
-    else {
+    } else {
         NSAssert(false, @"[%@] could not create capture device: %@", NSStringFromClass(self.class), inputError);
     }
-#else
-    }
-#endif
 
     AVCaptureMetadataOutput *metadata = [[AVCaptureMetadataOutput alloc] init];
     if ([_session canAddOutput:metadata]) {
@@ -129,12 +134,9 @@
             [_session addOutput:metadata];
         }
         _metadataOutput = metadata;
-    }
-#if !TARGET_IPHONE_SIMULATOR
-    else {
+    } else {
         NSAssert(false, @"[%@] could not create metadata output!", NSStringFromClass(self.class));
     }
-#endif
     [_session commitConfiguration];
 }
 
@@ -159,37 +161,30 @@
             videoDevice.focusPointOfInterest = point;
             [videoDevice unlockForConfiguration];
             return YES;
-        }
-        else {
+        } else {
             NSAssert(false, @"[%@] Can not configure focus for input device: %@", NSStringFromClass(self.class), configurationError);
-            return NO;
         }
     }
-    else {
-        return NO;
-    }
+    return NO;
 }
 
 - (BOOL)exposeAtPoint:(CGPoint)point
 {
     AVCaptureDevice *videoDevice = self.captureDevice;
-    if (videoDevice.isExposurePointOfInterestSupported
-        && [videoDevice isExposureModeSupported:AVCaptureExposureModeContinuousAutoExposure]) {
+    if (videoDevice.isExposurePointOfInterestSupported &&
+        [videoDevice isExposureModeSupported:AVCaptureExposureModeContinuousAutoExposure]) {
         NSError *configurationError = nil;
         if ([videoDevice lockForConfiguration:&configurationError]) {
             videoDevice.exposureMode = AVCaptureExposureModeContinuousAutoExposure;
             videoDevice.exposurePointOfInterest = point;
             [videoDevice unlockForConfiguration];
             return YES;
-        }
-        else {
+        } else {
             NSAssert(false, @"[%@] Can not configure exposure for input device: %@", NSStringFromClass(self.class), configurationError);
-            return NO;
         }
     }
-    else {
-        return NO;
-    }
+    
+    return NO;
 }
 
 
@@ -207,12 +202,12 @@
     
     _codesInFOV = objectsStillLiving;
     
-    
     if (objectsAdded.count > 0 && [self.delegate respondsToSelector:@selector(scanner:codesDidEnterFOV:)]) {
         dispatch_sync(dispatch_get_main_queue(), ^{
             [self.delegate scanner:self codesDidEnterFOV:objectsAdded.copy];
         });
     }
+    
     if (objectsMissing.count > 0 && [self.delegate respondsToSelector:@selector(scanner:codesDidLeaveFOV:)]) {
         dispatch_sync(dispatch_get_main_queue(), ^{
             [self.delegate scanner:self codesDidLeaveFOV:objectsMissing.copy];
