@@ -7,7 +7,7 @@
 //
 
 #import "TCCodeScanner.h"
-
+#import <UIKit/UIKit.h>
 
 #if TARGET_IPHONE_SIMULATOR
 
@@ -20,6 +20,7 @@
 #endif
 
 @import AVFoundation;
+@import CoreImage;
 
 
 @interface TCCodeScanner () <AVCaptureMetadataOutputObjectsDelegate>
@@ -29,10 +30,9 @@
 @implementation TCCodeScanner
 {
     @private
-    NSSet *_codesInFOV;
+    NSSet<NSString *> *_codesInFOV;
     AVCaptureMetadataOutput *_metadataOutput;
 }
-
 
 - (void)dealloc
 {
@@ -46,6 +46,15 @@
         [self setupCaptureSession];
     }
     return self;
+}
+
++ (NSSet<NSString *> *)scanQRCodeFromCGImage:(CGImageRef)img accuracyHigh:(BOOL)accuracyHigh
+{
+    CIImage *ciImg = [CIImage imageWithCGImage:img];
+    CIDetector *detector = [CIDetector detectorOfType:CIDetectorTypeQRCode context:nil options:@{CIDetectorAccuracy:accuracyHigh? CIDetectorAccuracyHigh : CIDetectorAccuracyLow}];
+    NSArray<CIFeature *> *features = [detector featuresInImage:ciImg];
+    
+    return features.count > 0 ? [NSSet setWithArray:[features valueForKey:@"messageString"]] : nil;
 }
 
 + (void)requestAccessAuthorized:(void (^)(BOOL granted))complete
@@ -193,11 +202,11 @@
 - (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputMetadataObjects:(NSArray *)metadataObjects fromConnection:(AVCaptureConnection *)connection
 {
     // AVMetadataMachineReadableCodeObject
-    NSSet *objectsStillLiving = [NSSet setWithArray:[metadataObjects valueForKeyPath:@"@distinctUnionOfObjects.stringValue"]];
-    NSMutableSet *objectsAdded = [NSMutableSet setWithSet:objectsStillLiving];
+    NSSet<NSString *> *objectsStillLiving = [NSSet setWithArray:[metadataObjects valueForKeyPath:@"@distinctUnionOfObjects.stringValue"]];
+    NSMutableSet<NSString *> *objectsAdded = [NSMutableSet setWithSet:objectsStillLiving];
     [objectsAdded minusSet:_codesInFOV];
     
-    NSMutableSet *objectsMissing = [NSMutableSet setWithSet:_codesInFOV];
+    NSMutableSet<NSString *> *objectsMissing = [NSMutableSet setWithSet:_codesInFOV];
     [objectsMissing minusSet:objectsStillLiving];
     
     _codesInFOV = objectsStillLiving;

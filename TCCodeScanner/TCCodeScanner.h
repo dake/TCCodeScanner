@@ -24,6 +24,8 @@ NS_CLASS_AVAILABLE_IOS(7_0) @interface TCCodeScanner : NSObject
 
 + (void)requestAccessAuthorized:(void (^)(BOOL granted))complete;
 
++ (NSSet<NSString *> *)scanQRCodeFromCGImage:(CGImageRef)img accuracyHigh:(BOOL)accuracyHigh NS_AVAILABLE_IOS(8_0);
+
 - (BOOL)focusAtPoint:(CGPoint)point;
 - (BOOL)exposeAtPoint:(CGPoint)point;
 
@@ -43,7 +45,7 @@ NS_CLASS_AVAILABLE_IOS(7_0) @interface TCCodeScanner : NSObject
  @note	If you do a simple scan for the first code you find, you can get the
  code from this method and close the scanner afterwards.
  */
-- (void)scanner:(TCCodeScanner *)scanner codesDidEnterFOV:(NSSet *)codes;
+- (void)scanner:(TCCodeScanner *)scanner codesDidEnterFOV:(NSSet<NSString *> *)codes;
 
 /**
  This method is called whenever an existing code leaves the field of view.
@@ -51,7 +53,7 @@ NS_CLASS_AVAILABLE_IOS(7_0) @interface TCCodeScanner : NSObject
  @param	scanner	The scanner that is calling this delegate
  @param	codes	A list of all the codes that left the FOV in this interval
  */
-- (void)scanner:(TCCodeScanner *)scanner codesDidLeaveFOV:(NSSet *)codes;
+- (void)scanner:(TCCodeScanner *)scanner codesDidLeaveFOV:(NSSet<NSString *> *)codes;
 
 
 @end
