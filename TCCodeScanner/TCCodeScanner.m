@@ -7,7 +7,7 @@
 //
 
 #import "TCCodeScanner.h"
-#import <UIKit/UIKit.h>
+
 
 #if TARGET_IPHONE_SIMULATOR
 
@@ -121,7 +121,9 @@
     _session = [[AVCaptureSession alloc] init];
     
     [_session beginConfiguration];
-//    _session.sessionPreset = AVCaptureSessionPresetHigh;
+    if ([_session canSetSessionPreset:AVCaptureSessionPresetHigh]) {
+        _session.sessionPreset = AVCaptureSessionPresetHigh;
+    }
     
     NSError *inputError = nil;
     AVCaptureDeviceInput *cameraInput = [[AVCaptureDeviceInput alloc] initWithDevice:self.captureDevice error:&inputError];
@@ -199,9 +201,8 @@
 
 #pragma mark - AVCaptureMetadataOutputObjectsDelegate
 
-- (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputMetadataObjects:(NSArray *)metadataObjects fromConnection:(AVCaptureConnection *)connection
+- (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputMetadataObjects:(NSArray<AVMetadataMachineReadableCodeObject *> *)metadataObjects fromConnection:(AVCaptureConnection *)connection
 {
-    // AVMetadataMachineReadableCodeObject
     NSSet<NSString *> *objectsStillLiving = [NSSet setWithArray:[metadataObjects valueForKeyPath:@"@distinctUnionOfObjects.stringValue"]];
     NSMutableSet<NSString *> *objectsAdded = [NSMutableSet setWithSet:objectsStillLiving];
     [objectsAdded minusSet:_codesInFOV];
